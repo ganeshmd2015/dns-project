@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # pjdns - Legacy Python-based DNS server
   pjdns:

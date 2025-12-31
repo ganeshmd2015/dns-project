@@ -30,7 +30,21 @@ This project provides a complete DNS infrastructure solution that addresses load
 - 2GB RAM minimum
 - Ports 53, 5353, 5401-5403, 8081-8084 available
 
-### Deploy All Services
+### Option 1: Automated Setup (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/ganeshmd2015/dns-project.git
+cd dns-project
+
+# Validate configuration
+./validate.sh
+
+# Quick start (builds, starts, and tests services)
+./quickstart.sh
+```
+
+### Option 2: Manual Setup
 
 ```bash
 # Clone the repository
@@ -38,10 +52,10 @@ git clone https://github.com/ganeshmd2015/dns-project.git
 cd dns-project
 
 # Start all services
-docker-compose up -d --build
+docker compose up -d --build
 
 # Verify services are running
-docker-compose ps
+docker compose ps
 ```
 
 ### Test DNS Resolution
@@ -88,6 +102,8 @@ Internet/Clients
 ```
 dns-project/
 ├── docker-compose.yml          # Container orchestration
+├── validate.sh                 # Configuration validation script
+├── quickstart.sh               # Automated deployment script
 ├── pjdns/                      # Python DNS server
 │   ├── Dockerfile
 │   └── dns_server.py
