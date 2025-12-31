@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # pjdns - Legacy Python-based DNS server
+  pjdns:
+    build:
+      context: ./pjdns
+      dockerfile: Dockerfile
+    container_name: dns-pjdns
+    networks:
+      dns-network:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "5353:53/udp"  # Expose on host port 5353 for direct testing
+      - "5353:53/tcp"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.settimeout(1); s.connect(('127.0.0.1', 53)); s.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # PowerDNS Zone 1
+  powerdns-zone1:
+    build:
+      context: ./powerdns
+      dockerfile: Dockerfile
+    container_name: dns-powerdns-zone1
+    networks:
+      dns-network:
+        ipv4_address: 172.20.0.11
+    ports:
+      - "5401:53/udp"  # Expose on host port 5401 for direct testing
+      - "5401:53/tcp"
+      - "8081:8081/tcp"  # Web API
+    volumes:
+      - ./powerdns/zone1/pdns.conf:/etc/powerdns/pdns.conf:ro
+      - ./powerdns/zone1/init-db.sh:/usr/local/bin/init-db.sh:ro
+      - powerdns-zone1-data:/var/lib/powerdns
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pdns_control ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # PowerDNS Zone 2
+  powerdns-zone2:
+    build:
+      context: ./powerdns
+      dockerfile: Dockerfile
+    container_name: dns-powerdns-zone2
+    networks:
+      dns-network:
+        ipv4_address: 172.20.0.12
+    ports:
+      - "5402:53/udp"  # Expose on host port 5402 for direct testing
+      - "5402:53/tcp"
+      - "8082:8081/tcp"  # Web API
+    volumes:
+      - ./powerdns/zone2/pdns.conf:/etc/powerdns/pdns.conf:ro
+      - ./powerdns/zone2/init-db.sh:/usr/local/bin/init-db.sh:ro
+      - powerdns-zone2-data:/var/lib/powerdns
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pdns_control ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # PowerDNS Zone 3
+  powerdns-zone3:
+    build:
+      context: ./powerdns
+      dockerfile: Dockerfile
+    container_name: dns-powerdns-zone3
+    networks:
+      dns-network:
+        ipv4_address: 172.20.0.13
+    ports:
+      - "5403:53/udp"  # Expose on host port 5403 for direct testing
+      - "5403:53/tcp"
+      - "8083:8081/tcp"  # Web API (note: different from dnsdist port)
+    volumes:
+      - ./powerdns/zone3/pdns.conf:/etc/powerdns/pdns.conf:ro
+      - ./powerdns/zone3/init-db.sh:/usr/local/bin/init-db.sh:ro
+      - powerdns-zone3-data:/var/lib/powerdns
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pdns_control ping || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # dnsdist - DNS load balancer and traffic router
+  dnsdist:
+    build:
+      context: ./dnsdist
+      dockerfile: Dockerfile
+    container_name: dns-dnsdist
+    networks:
+      dns-network:
+        ipv4_address: 172.20.0.5
+    ports:
+      - "53:53/udp"      # Main DNS port
+      - "53:53/tcp"      # Main DNS port (TCP)
+      - "8084:8083/tcp"  # Web management interface
+    volumes:
+      - ./dnsdist/dnsdist.conf:/etc/dnsdist/dnsdist.conf:ro
+    depends_on:
+      - pjdns
+      - powerdns-zone1
+      - powerdns-zone2
+      - powerdns-zone3
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "dnsdist", "-e", "showServers()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  dns-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  powerdns-zone1-data:
+    driver: local
+  powerdns-zone2-data:
+    driver: local
+  powerdns-zone3-data:
+    driver: local
