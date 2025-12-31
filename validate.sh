@@ -58,7 +58,7 @@ done
 echo "✓ All initialization scripts are valid"
 echo ""
 
-# Check port availability
+# Check port availability (primarily TCP, DNS uses both TCP/UDP on port 53)
 echo "Checking port availability..."
 PORTS=(53 5353 5401 5402 5403 8081 8082 8083 8084)
 PORTS_IN_USE=()

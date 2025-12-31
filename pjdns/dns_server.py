@@ -6,6 +6,7 @@ Handles basic DNS queries for demonstration purposes
 
 import socket
 import sys
+import time
 from dnslib import DNSRecord, DNSHeader, RR, QTYPE, A
 from dnslib.server import DNSServer, DNSHandler, BaseResolver
 
@@ -62,7 +63,6 @@ def main():
         
         # Keep the main thread running
         while True:
-            import time
             time.sleep(1)
     except KeyboardInterrupt:
         print("\nShutting down DNS server...")
