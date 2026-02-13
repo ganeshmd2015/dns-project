@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<domainRegistrationResponse>
+  <status>success</status>
+  <domain>
+    <name>example.com</name>
+    <registrant>John Doe</registrant>
+    <registrar>Example Registrar Inc.</registrar>
+    <registrationDate>2026-01-15T10:30:00Z</registrationDate>
+    <expirationDate>2027-01-15T10:30:00Z</expirationDate>
+    <nameservers>
+      <nameserver>ns1.example.com</nameserver>
+      <nameserver>ns2.example.com</nameserver>
+    </nameservers>
+  </domain>
+  <transactionId>TXN-2026-00001</transactionId>
+</domainRegistrationResponse>
